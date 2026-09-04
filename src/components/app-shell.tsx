@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
-import { BarChart3, HeartHandshake, Home, LogOut, Menu, RotateCcw, Upload, Users, X } from "lucide-react";
+import { BarChart3, Home, LogOut, Menu, RotateCcw, Upload, Users, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { usePadrinos } from "@/components/padrinos-provider";
 
@@ -31,9 +32,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       <button className="mobile-menu" aria-label="Abrir menú" onClick={() => setOpen(true)}><Menu /></button>
       {open && <button className="sidebar-scrim" aria-label="Cerrar menú" onClick={() => setOpen(false)} />}
       <aside className={`sidebar ${open ? "sidebar-open" : ""}`}>
-        <div className="brand">
-          <span className="brand-mark"><HeartHandshake aria-hidden="true" /></span>
-          <span><strong>Juntos</strong><small>Panel de padrinos</small></span>
+        <div className="brand sidebar-brand">
+          <Image className="sidebar-logo" src="/logo-fundacion.png" alt="Fundación Juntos por los Demás" width={205} height={100} priority />
           <button className="sidebar-close" aria-label="Cerrar menú" onClick={() => setOpen(false)}><X /></button>
         </div>
         <nav aria-label="Navegación principal">

@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test("permite entrar al modo demostración y consultar los tres reportes", async ({ page }) => {
   await page.goto("/login");
+  await expect(page.getByAltText("Fundación Juntos por los Demás")).toBeVisible();
   await page.getByRole("button", { name: "Entrar a la demostración" }).click();
   await expect(page.getByRole("heading", { name: "Resumen del padrón" })).toBeVisible();
   if (await page.getByRole("button", { name: "Abrir menú" }).isVisible()) {
