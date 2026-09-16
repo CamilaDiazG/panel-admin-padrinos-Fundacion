@@ -52,7 +52,10 @@ function persistDemo(items: Padrino[]) {
 }
 
 export function PadrinosProvider({ children }: { children: ReactNode }) {
-  const [padrinos, setPadrinos] = useState<Padrino[]>(() => isDemoMode ? readDemo() : []);
+  // The first client render must match the server render. Browser data is loaded
+  // after hydration to avoid rendering localStorage on the client and demo data
+  // on the server in the same tree.
+  const [padrinos, setPadrinos] = useState<Padrino[]>(isDemoMode ? DEMO_PADRINOS : []);
   const [loading, setLoading] = useState(!isDemoMode);
   const [error, setError] = useState("");
 
@@ -75,7 +78,10 @@ export function PadrinosProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (isDemoMode) return;
+    if (isDemoMode) {
+      const timer = window.setTimeout(() => setPadrinos(readDemo()), 0);
+      return () => window.clearTimeout(timer);
+    }
     let cancelled = false;
     fetch("/api/padrinos", { cache: "no-store" })
       .then(async (response) => {

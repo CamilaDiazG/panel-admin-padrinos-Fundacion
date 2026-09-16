@@ -30,6 +30,8 @@ La aplicación permite:
 - Detectar posibles duplicados mediante RFC o correo normalizados.
 - Buscar, filtrar, ordenar y paginar el padrón.
 - Cambiar registros entre `pendiente`, `activo` e `inactivo`.
+- Registrar movimientos de donativos y consultar su acumulado por año y mes.
+- Comparar los donativos recibidos contra el compromiso anual de cada padrino.
 - Importar hasta 5,000 registros desde `.xlsx` o `.csv`.
 - Descargar incidencias de una importación parcial.
 - Consultar exactamente tres reportes:
@@ -77,6 +79,7 @@ src/
 ├── app/
 │   ├── (app)/                 Rutas privadas y layout administrativo
 │   │   ├── padrinos/          Listado, alta y edición
+│   │   ├── donativos/         Control anual, captura y matriz mensual
 │   │   ├── importar/          Carga y previsualización de archivos
 │   │   └── reportes/          Los tres reportes operativos
 │   ├── (auth)/                Login y recuperación de contraseña
@@ -84,10 +87,12 @@ src/
 │   └── auth/callback/         Intercambio de código de Supabase Auth
 ├── components/
 │   ├── padrinos-provider.tsx  Abstracción demo/producción y estado compartido
+│   ├── donativos-provider.tsx Persistencia local temporal de movimientos
 │   ├── padrino-form.tsx       Formulario principal
 │   └── charts.tsx             Visualizaciones sin dependencia gráfica externa
 └── lib/
     ├── padrinos.ts            Esquema, tipos, normalización y cálculos
+    ├── donativos.ts           Contrato, acumulados y compromisos anuales
     ├── spreadsheet.ts         Lectura, plantilla y exportaciones
     ├── constants.ts           Catálogos y estados
     └── supabase/              Clientes de navegador, servidor y sesión
@@ -139,6 +144,7 @@ Estas reglas forman parte del comportamiento esperado y deben conservarse:
 8. El historial se conserva mediante `created_at`, `updated_at`, `created_by`, `updated_by` y `auditoria`.
 9. Los estados se comunican con texto, símbolo y color; nunca únicamente con color.
 10. Las aportaciones representan compromisos declarados, no transacciones confirmadas.
+11. Un donativo cancelado conserva su registro, pero deja de participar en los acumulados.
 
 ### Equivalente mensual
 
@@ -165,6 +171,7 @@ La función fuente es `monthlyEquivalent` en `src/lib/padrinos.ts`. Una aportaci
 | `/padrinos` | Consulta, filtros, paginación y cambio de estado. |
 | `/padrinos/nuevo` | Alta de padrino. |
 | `/padrinos/[id]` | Consulta y edición. |
+| `/donativos` | Captura de movimientos, filtro anual y control mensual. |
 | `/importar` | Plantilla, previsualización y carga masiva. |
 | `/reportes` | Reportes filtrables y exportación. |
 | `/api/padrinos` | Consulta y alta validadas. |
@@ -223,6 +230,22 @@ La migración inicial crea:
 - Trigger de actualización y auditoría.
 
 No existe una política RLS de `DELETE` para padrinos.
+
+## Control de donativos
+
+El formato histórico organiza el control por padrino y por columnas de enero a diciembre. La aplicación conserva esa vista, pero almacena el concepto de forma normalizada: cada donativo es un movimiento independiente con padrino, fecha, monto, método, quincena, referencia y comentarios.
+
+`src/lib/donativos.ts` es la fuente de verdad para:
+
+- Validación del movimiento.
+- Cálculo del compromiso anual según periodicidad.
+- Filtro de movimientos registrados por año.
+- Acumulado general y por padrino.
+- Agrupación mensual.
+
+Actualmente este módulo es un **prototipo local** y utiliza `localStorage` mediante `DonationsProvider`. No se creó una tabla en Supabase porque debe confirmarse si la persistencia definitiva será Oracle APEX/ORDS. Antes de conectar un backend, conserva la interfaz `Donation` y sustituye únicamente la implementación del repositorio.
+
+El botón de cancelación no elimina el movimiento: cambia su estado a `cancelado`. La futura implementación en Oracle debe conservar esa trazabilidad junto con usuario y fecha de cancelación.
 
 ## Importación y exportación
 
@@ -334,6 +357,7 @@ El destino previsto es Vercel:
 ## Consideraciones operativas
 
 - El modo demo guarda datos por navegador; limpiar almacenamiento elimina esos cambios.
+- El control de donativos también es local hasta que se defina la integración con Oracle APEX.
 - La importación evita que una fila inválida cancele todo el archivo.
 - Una importación grande se procesa actualmente en una sola petición. Si el volumen supera 5,000 filas, conviene migrar a procesamiento por lotes o una tarea en segundo plano.
 - Los catálogos están definidos en código. Si necesitan administración dinámica, deben convertirse en tablas con una migración explícita.

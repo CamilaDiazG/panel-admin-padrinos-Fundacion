@@ -178,6 +178,24 @@ td small { color: var(--muted); }
 .report-metrics.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .report-table { overflow: hidden; }
 .record-count { color: var(--muted); font-size: .78rem; }
+.donation-form { overflow: hidden; margin-bottom: 20px; }
+.donation-form .card-header p, .donation-control .card-header p, .donation-history .card-header p { margin: 4px 0 0; color: var(--muted); font-size: .78rem; }
+.donation-form-actions { display: flex; justify-content: flex-end; padding: 16px 22px; background: #f8fafd; border-top: 1px solid var(--line); }
+.donation-toolbar { display: flex; align-items: end; gap: 14px; margin-bottom: 20px; padding: 16px; }
+.donation-toolbar .field:first-child { min-width: 150px; }
+.donation-search { flex: 1; }
+.donation-metrics { margin-bottom: 20px; }
+.donation-chart { margin-bottom: 20px; }
+.donation-chart .bar-chart { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 16px; }
+.donation-control, .donation-history { overflow: hidden; margin-bottom: 20px; }
+.donation-matrix { min-width: 1750px; }
+.donation-matrix th:not(:first-child), .donation-matrix td:not(:first-child) { text-align: right; }
+.donation-matrix td { white-space: nowrap; }
+.donation-matrix tfoot th { color: var(--blue-950); background: var(--blue-100); border-top: 2px solid #b9cee5; }
+.month-paid { color: var(--green); background: #f5fbf7; font-weight: 700; }
+.month-empty { color: #a0adbd; }
+.cancelled-row td { color: #8c96a5; background: #fafafa; text-decoration-color: #c1c6ce; }
+.cancelled-row td:nth-child(-n+6) { text-decoration: line-through; }
 .spin { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -204,6 +222,7 @@ td small { color: var(--muted); }
   .form-grid { grid-template-columns: repeat(2, 1fr); }
   .field-span-3 { grid-column: span 2; }
   .report-filters { grid-template-columns: repeat(3, 1fr); }
+  .donation-chart .bar-chart { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 @media (max-width: 760px) {
@@ -229,6 +248,9 @@ td small { color: var(--muted); }
   .report-tabs { grid-template-columns: 1fr; }
   .report-filters { grid-template-columns: 1fr 1fr; }
   .report-metrics.three { grid-template-columns: 1fr; }
+  .donation-toolbar { align-items: stretch; flex-direction: column; }
+  .donation-toolbar .field, .donation-toolbar .button { width: 100%; }
+  .donation-chart .bar-chart { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 430px) {

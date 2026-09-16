@@ -26,3 +26,32 @@ test("registra y edita un padrino", async ({ page }) => {
   await expect(page.getByText("Los cambios se guardaron correctamente.")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Persona Demostración" })).toBeVisible();
 });
+
+test("filtra y registra un donativo", async ({ page }) => {
+  await page.goto("/donativos");
+  await expect(page.getByRole("heading", { name: "Control de donativos" })).toBeVisible();
+  await expect(page.getByText("Acumulado recibido")).toBeVisible();
+  await page.getByRole("button", { name: "Registrar donativo" }).click();
+  await page.getByLabel("Padrino", { exact: true }).selectOption("demo-1");
+  await page.getByLabel("Monto (MXN)").fill("1250");
+  await page.getByLabel("Folio o referencia").fill("E2E-TEST");
+  await page.getByRole("button", { name: "Guardar donativo" }).click();
+  await expect(page.getByText("El donativo se registró correctamente.")).toBeVisible();
+  await expect(page.getByText("E2E-TEST")).toBeVisible();
+});
+
+test("hidrata sin errores cuando existen datos locales distintos", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    window.localStorage.setItem("juntos-padrinos-demo-v1", "[]");
+    window.localStorage.setItem("juntos-donativos-demo-v1", "[]");
+  });
+  const hydrationErrors: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error" && message.text().includes("Hydration failed")) hydrationErrors.push(message.text());
+  });
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "Resumen del padrón" })).toBeVisible();
+  await expect(page.getByText("0 activos")).toBeVisible();
+  expect(hydrationErrors).toEqual([]);
+});

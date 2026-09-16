@@ -23,3 +23,6 @@ yarn-error.log*
 pnpm-debug.log*
 *.tsbuildinfo
 next-env.d.ts
+
+# archivos locales con datos operativos
+/Padrinos.xlsx
