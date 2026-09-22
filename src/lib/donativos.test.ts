@@ -10,8 +10,17 @@ const movements: Donation[] = [
 
 describe("control de donativos", () => {
   it("valida movimientos positivos con padrino y fecha", () => {
-    expect(donationSchema.safeParse({ padrino_id: "p1", fecha: "2026-09-16", monto: 1000, metodo_pago: "transferencia", quincena: "segunda", referencia: "", comentarios: "" }).success).toBe(true);
+    expect(donationSchema.safeParse({ padrino_id: "p1", fecha: "2026-09-16", monto: 1000, metodo_pago: "transferencia", quincena: "segunda", referencia: "TR-100", comentarios: "" }).success).toBe(true);
     expect(donationSchema.safeParse({ padrino_id: "", fecha: "2026-09-16", monto: 0, metodo_pago: "transferencia", quincena: "segunda", referencia: "", comentarios: "" }).success).toBe(false);
+  });
+
+  it("exige folio únicamente para transferencias y depósitos", () => {
+    const base = { padrino_id: "p1", fecha: "2026-09-16", monto: 1000, quincena: "segunda" as const, referencia: "", comentarios: "" };
+    expect(donationSchema.safeParse({ ...base, metodo_pago: "transferencia" }).success).toBe(false);
+    expect(donationSchema.safeParse({ ...base, metodo_pago: "deposito" }).success).toBe(false);
+    expect(donationSchema.safeParse({ ...base, metodo_pago: "efectivo" }).success).toBe(true);
+    expect(donationSchema.safeParse({ ...base, metodo_pago: "tarjeta" }).success).toBe(true);
+    expect(donationSchema.parse({ ...base, metodo_pago: "efectivo", referencia: "NO-DEBE-GUARDARSE" }).referencia).toBe("");
   });
 
   it("calcula el compromiso anual según la periodicidad", () => {

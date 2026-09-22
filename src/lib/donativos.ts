@@ -9,7 +9,14 @@ export const donationSchema = z.object({
   quincena: z.enum(["primera", "segunda", "no_aplica"]),
   referencia: z.string().trim().max(100).default(""),
   comentarios: z.string().trim().max(1000).default(""),
-});
+}).superRefine((data, ctx) => {
+  if ((data.metodo_pago === "transferencia" || data.metodo_pago === "deposito") && !data.referencia) {
+    ctx.addIssue({ code: "custom", path: ["referencia"], message: "El folio es obligatorio para este método" });
+  }
+}).transform((data) => ({
+  ...data,
+  referencia: data.metodo_pago === "transferencia" || data.metodo_pago === "deposito" ? data.referencia : "",
+}));
 
 export type DonationInput = z.infer<typeof donationSchema>;
 

@@ -34,10 +34,29 @@ test("filtra y registra un donativo", async ({ page }) => {
   await page.getByRole("button", { name: "Registrar donativo" }).click();
   await page.getByLabel("Padrino", { exact: true }).selectOption("demo-1");
   await page.getByLabel("Monto (MXN)").fill("1250");
-  await page.getByLabel("Folio o referencia").fill("E2E-TEST");
+  await page.getByLabel("Folio de transferencia").fill("E2E-TEST");
   await page.getByRole("button", { name: "Guardar donativo" }).click();
   await expect(page.getByText("El donativo se registró correctamente.")).toBeVisible();
   await expect(page.getByText("E2E-TEST")).toBeVisible();
+});
+
+test("guarda una carta navideña dentro del padrino", async ({ page }) => {
+  await page.goto("/padrinos/demo-1");
+  await expect(page.getByRole("heading", { name: "Cartas de Navidad" })).toBeVisible();
+  await page.getByRole("button", { name: "Agregar carta" }).click();
+  await page.getByLabel("Nombre del paciente").fill("Paciente de prueba");
+  await page.getByLabel("Regalo 1").fill("Libro");
+  await page.getByLabel("Regalo 2").fill("Rompecabezas");
+  await page.getByLabel("Regalo 3").fill("Balón");
+  await page.getByLabel("Carta escaneada").setInputFiles({
+    name: "carta-prueba.pdf",
+    mimeType: "application/pdf",
+    buffer: Buffer.from("%PDF-1.4 carta de prueba"),
+  });
+  await page.getByRole("button", { name: "Guardar carta" }).click();
+  await expect(page.getByText("La carta y su archivo se guardaron correctamente.")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Paciente de prueba" })).toBeVisible();
+  await expect(page.getByText("carta-prueba.pdf")).toBeVisible();
 });
 
 test("hidrata sin errores cuando existen datos locales distintos", async ({ page }) => {

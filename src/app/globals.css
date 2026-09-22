@@ -196,6 +196,28 @@ td small { color: var(--muted); }
 .month-empty { color: #a0adbd; }
 .cancelled-row td { color: #8c96a5; background: #fafafa; text-decoration-color: #c1c6ce; }
 .cancelled-row td:nth-child(-n+6) { text-decoration: line-through; }
+.letters-panel { overflow: hidden; margin-top: 28px; }
+.letters-panel .card-header h2 { display: flex; align-items: center; gap: 8px; }
+.letters-panel .card-header p { margin: 4px 0 0; color: var(--muted); font-size: .78rem; }
+.letters-panel > .alert { margin: 16px 22px 0; }
+.letters-privacy { display: flex; align-items: flex-start; gap: 9px; padding: 12px 22px; color: var(--blue-900); background: var(--blue-50); border-bottom: 1px solid #cbdcf1; font-size: .78rem; line-height: 1.5; }
+.letters-privacy svg { flex: 0 0 auto; margin-top: 1px; }
+.letter-form { padding: 22px; background: #fbfcfe; border-bottom: 1px solid var(--line); }
+.letter-form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+.letters-list { display: grid; }
+.letter-item { display: grid; grid-template-columns: 105px minmax(260px, 1fr) 175px 190px; align-items: center; gap: 20px; padding: 20px 22px; border-bottom: 1px solid var(--line); }
+.letter-item:last-child { border-bottom: 0; }
+.letter-year { display: grid; gap: 3px; padding: 13px; color: var(--blue-900); background: var(--blue-50); border-radius: 12px; text-align: center; }
+.letter-year span { color: var(--muted); font-size: .69rem; font-weight: 700; text-transform: uppercase; }
+.letter-year strong { font-size: 1.35rem; }
+.letter-title { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; }
+.letter-title h3 { margin: 0; font-size: .98rem; }
+.letter-summary ol { display: flex; flex-wrap: wrap; gap: 6px 25px; margin: 10px 0 7px; padding-left: 20px; color: #314158; font-size: .8rem; }
+.letter-summary p { margin: 0; color: var(--muted); font-size: .75rem; }
+.letter-file { display: grid; min-width: 0; gap: 4px; justify-items: start; }
+.letter-file small { overflow: hidden; width: 100%; color: var(--muted); font-size: .7rem; text-overflow: ellipsis; white-space: nowrap; }
+.letter-status-control label { font-size: .7rem; }
+.letter-status-control select { min-height: 38px; padding: 7px 9px; font-size: .77rem; }
 .spin { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -223,6 +245,8 @@ td small { color: var(--muted); }
   .field-span-3 { grid-column: span 2; }
   .report-filters { grid-template-columns: repeat(3, 1fr); }
   .donation-chart .bar-chart { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .letter-item { grid-template-columns: 90px minmax(230px, 1fr) 170px; }
+  .letter-status-control { grid-column: 2 / -1; }
 }
 
 @media (max-width: 760px) {
@@ -251,6 +275,13 @@ td small { color: var(--muted); }
   .donation-toolbar { align-items: stretch; flex-direction: column; }
   .donation-toolbar .field, .donation-toolbar .button { width: 100%; }
   .donation-chart .bar-chart { grid-template-columns: 1fr; }
+  .letters-panel .card-header { align-items: stretch; flex-direction: column; }
+  .letters-panel .card-header .button { width: 100%; }
+  .letter-form { padding: 18px 16px; }
+  .letter-item { grid-template-columns: 76px 1fr; align-items: start; gap: 14px; padding: 18px 16px; }
+  .letter-file, .letter-status-control { grid-column: 1 / -1; }
+  .letter-file { grid-template-columns: auto 1fr; align-items: center; }
+  .letter-file small:last-child { grid-column: 2; }
 }
 
 @media (max-width: 430px) {

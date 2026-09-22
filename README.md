@@ -247,6 +247,18 @@ Actualmente este módulo es un **prototipo local** y utiliza `localStorage` medi
 
 El botón de cancelación no elimina el movimiento: cambia su estado a `cancelado`. La futura implementación en Oracle debe conservar esa trazabilidad junto con usuario y fecha de cancelación.
 
+El folio es obligatorio únicamente cuando el método es transferencia o depósito. Para efectivo, tarjeta u otro método, la interfaz oculta el campo y la capa de dominio descarta cualquier folio recibido.
+
+## Cartas de Navidad
+
+Cada ficha de padrino incluye un apartado para registrar las cartas de la campaña anual. El control conserva el año, paciente, tres regalos solicitados, medio y fecha de envío, estado, observaciones y el escaneo original.
+
+En modo demostración, tanto los datos como el archivo se guardan en `IndexedDB`, dentro del navegador actual. Esto permite probar archivos PDF e imágenes sin conectarse a Supabase. No debe considerarse almacenamiento compartido ni respaldo institucional.
+
+La integración definitiva debe reemplazar `CartasProvider` por un repositorio de Oracle/ORDS o por almacenamiento privado compatible. El archivo nunca debe publicarse mediante una URL abierta: contiene información de pacientes y requiere autenticación, autorización, trazabilidad y enlaces temporales de descarga.
+
+Formatos aceptados: PDF, JPG, PNG y WEBP, con límite de 10 MB por carta.
+
 ## Importación y exportación
 
 ### Importación
