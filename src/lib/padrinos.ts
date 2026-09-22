@@ -26,10 +26,11 @@ export const padrinoSchema = z
     numero_exterior: z.string().trim().max(20).default(""),
     numero_interior: z.string().trim().max(20).default(""),
     fecha_alta: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Selecciona una fecha"),
+    tipo_aportacion: z.enum(["monetaria", "especie_navidad"]).default("monetaria"),
     aportacion: z.coerce.number().min(0, "La aportación no puede ser negativa").max(100000000),
     periodicidad: z.enum(["unica", "mensual", "trimestral", "semestral", "anual"]),
     metodo_pago: z.enum(["transferencia", "tarjeta", "efectivo", "deposito", "otro"]),
-    origen: z.enum(["recomendacion", "redes", "evento", "empresa", "sitio_web", "otro"]),
+    origen: z.enum(["recomendacion", "redes", "evento", "empresa", "empleado_fundacion", "sitio_web", "otro"]),
     proximo_seguimiento: z.union([z.literal(""), z.string().regex(/^\d{4}-\d{2}-\d{2}$/)]).default(""),
     observaciones: z.string().trim().max(2000).default(""),
     estatus: z.enum(["activo", "pendiente", "inactivo"]),
@@ -89,6 +90,7 @@ export const padrinoDefaults: PadrinoInput = {
   numero_exterior: "",
   numero_interior: "",
   fecha_alta: new Date().toISOString().slice(0, 10),
+  tipo_aportacion: "monetaria",
   aportacion: 0,
   periodicidad: "mensual",
   metodo_pago: "transferencia",
@@ -111,7 +113,7 @@ export function normalizePhone(value: string): string {
 }
 
 export function normalizePadrino(input: PadrinoInput): PadrinoInput {
-  return {
+  const normalized = {
     ...input,
     email: normalizeEmail(input.email),
     rfc: normalizeRfc(input.rfc),
@@ -122,6 +124,9 @@ export function normalizePadrino(input: PadrinoInput): PadrinoInput {
     apellido_materno: input.apellido_materno.trim(),
     razon_social: input.razon_social.trim(),
   };
+  return input.tipo_aportacion === "especie_navidad"
+    ? { ...normalized, aportacion: 0, periodicidad: "unica", metodo_pago: "otro" }
+    : normalized;
 }
 
 export function toDatabasePadrino(input: PadrinoInput): Omit<PadrinoInput, "proximo_seguimiento"> & { proximo_seguimiento: string | null } {

@@ -27,6 +27,20 @@ test("registra y edita un padrino", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Persona Demostración" })).toBeVisible();
 });
 
+test("registra un padrino de posada con donativo en especie", async ({ page }) => {
+  await page.goto("/padrinos/nuevo");
+  await page.getByLabel("Nombre(s)").fill("Padrino");
+  await page.getByLabel("Apellido paterno").fill("Posada");
+  await page.getByLabel("Correo electrónico").fill(`posada-${Date.now()}@example.com`);
+  await page.getByLabel("Teléfono", { exact: true }).fill("3312345678");
+  await page.getByLabel("Código postal").fill("45019");
+  await page.getByLabel("Tipo de aportación").selectOption("especie_navidad");
+  await expect(page.getByText("Donativo en especie único")).toBeVisible();
+  await expect(page.getByLabel("Aportación (MXN)")).toHaveCount(0);
+  await page.getByRole("button", { name: "Guardar padrino" }).click();
+  await expect(page.getByRole("heading", { name: "Padrino Posada" })).toBeVisible();
+});
+
 test("filtra y registra un donativo", async ({ page }) => {
   await page.goto("/donativos");
   await expect(page.getByRole("heading", { name: "Control de donativos" })).toBeVisible();
@@ -40,11 +54,11 @@ test("filtra y registra un donativo", async ({ page }) => {
   await expect(page.getByText("E2E-TEST")).toBeVisible();
 });
 
-test("guarda una carta navideña dentro del padrino", async ({ page }) => {
+test("da de alta un ahijado de posada dentro del padrino", async ({ page }) => {
   await page.goto("/padrinos/demo-1");
-  await expect(page.getByRole("heading", { name: "Cartas de Navidad" })).toBeVisible();
-  await page.getByRole("button", { name: "Agregar carta" }).click();
-  await page.getByLabel("Nombre del paciente").fill("Paciente de prueba");
+  await expect(page.getByRole("heading", { name: "Ahijados de posada" })).toBeVisible();
+  await page.getByRole("button", { name: "Dar de alta ahijado" }).click();
+  await page.getByLabel("Nombre del ahijado").fill("Paciente de prueba");
   await page.getByLabel("Regalo 1").fill("Libro");
   await page.getByLabel("Regalo 2").fill("Rompecabezas");
   await page.getByLabel("Regalo 3").fill("Balón");
@@ -53,8 +67,9 @@ test("guarda una carta navideña dentro del padrino", async ({ page }) => {
     mimeType: "application/pdf",
     buffer: Buffer.from("%PDF-1.4 carta de prueba"),
   });
-  await page.getByRole("button", { name: "Guardar carta" }).click();
-  await expect(page.getByText("La carta y su archivo se guardaron correctamente.")).toBeVisible();
+  await page.getByLabel("Confirmó que sí regalará").check();
+  await page.getByRole("button", { name: "Guardar ahijado" }).click();
+  await expect(page.getByText("El ahijado de posada se registró correctamente.")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Paciente de prueba" })).toBeVisible();
   await expect(page.getByText("carta-prueba.pdf")).toBeVisible();
 });

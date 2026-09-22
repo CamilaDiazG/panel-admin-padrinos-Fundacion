@@ -9,6 +9,10 @@ export const ESTADOS_MEXICO = [
 ] as const;
 
 export const OPTIONS = {
+  tipo_aportacion: [
+    { value: "monetaria", label: "Donativo monetario" },
+    { value: "especie_navidad", label: "En especie · Regalos navideños" },
+  ],
   tipo: [
     { value: "persona", label: "Persona física" },
     { value: "empresa", label: "Empresa" },
@@ -42,6 +46,7 @@ export const OPTIONS = {
     { value: "redes", label: "Redes sociales" },
     { value: "evento", label: "Evento" },
     { value: "empresa", label: "Empresa o convenio" },
+    { value: "empleado_fundacion", label: "Empleado de la fundación" },
     { value: "sitio_web", label: "Sitio web" },
     { value: "otro", label: "Otro" },
   ],

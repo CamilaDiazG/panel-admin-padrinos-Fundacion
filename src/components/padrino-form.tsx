@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertTriangle, LoaderCircle, Save } from "lucide-react";
+import { AlertTriangle, Gift, LoaderCircle, Save } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { usePadrinos } from "@/components/padrinos-provider";
@@ -23,11 +23,12 @@ export function PadrinoForm({ padrino }: { padrino?: Padrino }) {
   const { padrinos, createPadrino, updatePadrino } = usePadrinos();
   const [submitError, setSubmitError] = useState("");
   const [saving, setSaving] = useState(false);
-  const { register, handleSubmit, control, formState: { errors, isDirty } } = useForm<PadrinoInput>({
+  const { register, handleSubmit, control, setValue, formState: { errors, isDirty } } = useForm<PadrinoInput>({
     resolver: zodResolver(padrinoSchema),
-    defaultValues: padrino ? { ...padrino } : padrinoDefaults,
+    defaultValues: padrino ? { ...padrino, tipo_aportacion: padrino.tipo_aportacion ?? "monetaria" } : padrinoDefaults,
   });
   const tipo = useWatch({ control, name: "tipo" });
+  const tipoAportacion = useWatch({ control, name: "tipo_aportacion" });
   const watchedEmail = useWatch({ control, name: "email" });
   const watchedRfc = useWatch({ control, name: "rfc" });
   const duplicate = useMemo(() => {
@@ -87,9 +88,12 @@ export function PadrinoForm({ padrino }: { padrino?: Padrino }) {
 
         <section className="form-section"><h2>Patrocinio y seguimiento</h2><p>Compromiso declarado; no representa movimientos contables.</p><div className="form-grid">
           <div className="field"><label className="required" htmlFor="fecha_alta">Fecha de alta</label><input id="fecha_alta" type="date" {...register("fecha_alta")} /><ErrorText message={errors.fecha_alta?.message} /></div>
-          <div className="field"><label className="required" htmlFor="aportacion">Aportación (MXN)</label><input id="aportacion" type="number" min="0" step="0.01" {...register("aportacion", { valueAsNumber: true })} /><ErrorText message={errors.aportacion?.message} /></div>
-          <div className="field"><label className="required" htmlFor="periodicidad">Periodicidad</label><select id="periodicidad" {...register("periodicidad")}><SelectOptions items={OPTIONS.periodicidad} /></select></div>
-          <div className="field"><label className="required" htmlFor="metodo_pago">Método de pago</label><select id="metodo_pago" {...register("metodo_pago")}><SelectOptions items={OPTIONS.metodo} /></select></div>
+          <div className="field field-span-2"><label className="required" htmlFor="tipo_aportacion">Tipo de aportación</label><select id="tipo_aportacion" {...register("tipo_aportacion", { onChange: (event) => { if (event.target.value === "especie_navidad") { setValue("aportacion", 0, { shouldDirty: true }); setValue("periodicidad", "unica", { shouldDirty: true }); setValue("metodo_pago", "otro", { shouldDirty: true }); } } })}><SelectOptions items={OPTIONS.tipo_aportacion} /></select></div>
+          {tipoAportacion === "especie_navidad" ? <div className="in-kind-callout field-span-3"><Gift /><span><strong>Donativo en especie único</strong>Este padrino participará con regalos navideños; no se solicitará monto ni método de pago.</span></div> : <>
+            <div className="field"><label className="required" htmlFor="aportacion">Aportación (MXN)</label><input id="aportacion" type="number" min="0" step="0.01" {...register("aportacion", { valueAsNumber: true })} /><ErrorText message={errors.aportacion?.message} /></div>
+            <div className="field"><label className="required" htmlFor="periodicidad">Periodicidad</label><select id="periodicidad" {...register("periodicidad")}><SelectOptions items={OPTIONS.periodicidad} /></select></div>
+            <div className="field"><label className="required" htmlFor="metodo_pago">Método de pago</label><select id="metodo_pago" {...register("metodo_pago")}><SelectOptions items={OPTIONS.metodo} /></select></div>
+          </>}
           <div className="field"><label className="required" htmlFor="origen">Origen del contacto</label><select id="origen" {...register("origen")}><SelectOptions items={OPTIONS.origen} /></select></div>
           <div className="field"><label htmlFor="proximo_seguimiento">Próximo seguimiento</label><input id="proximo_seguimiento" type="date" {...register("proximo_seguimiento")} /><ErrorText message={errors.proximo_seguimiento?.message} /></div>
           <div className="field"><label className="required" htmlFor="estatus">Estado</label><select id="estatus" {...register("estatus")}><SelectOptions items={OPTIONS.estatus} /></select></div>

@@ -114,7 +114,7 @@ Grupos de campos:
 - Identidad: `tipo`, nombres, apellidos, razón social, RFC y contacto responsable.
 - Contacto: correo, teléfonos y canal preferido.
 - Domicilio: país, estado, municipio, código postal y dirección.
-- Patrocinio: fecha de alta, aportación, periodicidad, método, origen y seguimiento.
+- Patrocinio: fecha de alta, tipo de aportación, monto, periodicidad, método, origen y seguimiento.
 - Control: estatus, fechas de creación/actualización y usuarios responsables.
 
 Catálogos persistidos como valores estables:
@@ -123,9 +123,10 @@ Catálogos persistidos como valores estables:
 tipo:             persona | empresa
 estatus:          pendiente | activo | inactivo
 canal:            whatsapp | llamada | correo
+tipo_aportacion:  monetaria | especie_navidad
 periodicidad:     unica | mensual | trimestral | semestral | anual
 metodo_pago:      transferencia | tarjeta | efectivo | deposito | otro
-origen:           recomendacion | redes | evento | empresa | sitio_web | otro
+origen:           recomendacion | redes | evento | empresa | empleado_fundacion | sitio_web | otro
 ```
 
 No cambies estos valores directamente para modificar una etiqueta visual. Las etiquetas en español viven en `src/lib/constants.ts`; cambiar un valor persistido requiere una migración de datos.
@@ -145,6 +146,7 @@ Estas reglas forman parte del comportamiento esperado y deben conservarse:
 9. Los estados se comunican con texto, símbolo y color; nunca únicamente con color.
 10. Las aportaciones representan compromisos declarados, no transacciones confirmadas.
 11. Un donativo cancelado conserva su registro, pero deja de participar en los acumulados.
+12. `especie_navidad` siempre se normaliza con monto `0`, periodicidad `unica` y método `otro`; no participa en reportes financieros.
 
 ### Equivalente mensual
 
@@ -249,11 +251,11 @@ El botón de cancelación no elimina el movimiento: cambia su estado a `cancelad
 
 El folio es obligatorio únicamente cuando el método es transferencia o depósito. Para efectivo, tarjeta u otro método, la interfaz oculta el campo y la capa de dominio descarta cualquier folio recibido.
 
-## Cartas de Navidad
+## Ahijados de posada
 
-Cada ficha de padrino incluye un apartado para registrar las cartas de la campaña anual. El control conserva el año, paciente, tres regalos solicitados, medio y fecha de envío, estado, observaciones y el escaneo original.
+Cada ficha de padrino incluye un apartado para dar de alta a sus ahijados de la campaña anual. El control conserva el año, nombre del ahijado, tres regalos solicitados, observaciones y dos indicadores independientes: confirmación del padrino y recepción de los regalos.
 
-En modo demostración, tanto los datos como el archivo se guardan en `IndexedDB`, dentro del navegador actual. Esto permite probar archivos PDF e imágenes sin conectarse a Supabase. No debe considerarse almacenamiento compartido ni respaldo institucional.
+El archivo escaneado es opcional. En modo demostración, tanto los datos como el archivo se guardan en `IndexedDB`, dentro del navegador actual. Esto permite probar archivos PDF e imágenes sin conectarse a Supabase. No debe considerarse almacenamiento compartido ni respaldo institucional.
 
 La integración definitiva debe reemplazar `CartasProvider` por un repositorio de Oracle/ORDS o por almacenamiento privado compatible. El archivo nunca debe publicarse mediante una URL abierta: contiene información de pacientes y requiere autenticación, autorización, trazabilidad y enlaces temporales de descarga.
 

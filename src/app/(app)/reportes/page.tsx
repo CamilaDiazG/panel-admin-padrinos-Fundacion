@@ -36,13 +36,14 @@ export default function ReportsPage() {
   if (loading) return <LoadingState label="Preparando reportes…" />;
 
   const statusCounts = { activo: rows.filter((item) => item.estatus === "activo").length, pendiente: rows.filter((item) => item.estatus === "pendiente").length, inactivo: rows.filter((item) => item.estatus === "inactivo").length };
-  const recurring = rows.filter((item) => item.estatus === "activo").reduce((sum, item) => sum + monthlyEquivalent(item), 0);
-  const unique = rows.filter((item) => item.estatus === "activo" && item.periodicidad === "unica").reduce((sum, item) => sum + item.aportacion, 0);
-  const totalDeclared = rows.reduce((sum, item) => sum + item.aportacion, 0);
+  const monetaryRows = rows.filter((item) => (item.tipo_aportacion ?? "monetaria") === "monetaria");
+  const recurring = monetaryRows.filter((item) => item.estatus === "activo").reduce((sum, item) => sum + monthlyEquivalent(item), 0);
+  const unique = monetaryRows.filter((item) => item.estatus === "activo" && item.periodicidad === "unica").reduce((sum, item) => sum + item.aportacion, 0);
+  const totalDeclared = monetaryRows.reduce((sum, item) => sum + item.aportacion, 0);
   const byState = groupCount(rows, "estado").slice(0, 8);
   const byOrigin = groupCount(rows, "origen");
-  const byMethod = OPTIONS.metodo.map((option) => ({ label: option.label, value: rows.filter((item) => item.metodo_pago === option.value).reduce((sum, item) => sum + item.aportacion, 0) })).filter((item) => item.value);
-  const byFrequency = OPTIONS.periodicidad.map((option) => ({ label: option.label, value: rows.filter((item) => item.periodicidad === option.value).reduce((sum, item) => sum + item.aportacion, 0) })).filter((item) => item.value);
+  const byMethod = OPTIONS.metodo.map((option) => ({ label: option.label, value: monetaryRows.filter((item) => item.metodo_pago === option.value).reduce((sum, item) => sum + item.aportacion, 0) })).filter((item) => item.value);
+  const byFrequency = OPTIONS.periodicidad.map((option) => ({ label: option.label, value: monetaryRows.filter((item) => item.periodicidad === option.value).reduce((sum, item) => sum + item.aportacion, 0) })).filter((item) => item.value);
   const byMonth = Object.entries(rows.reduce<Record<string, number>>((acc, item) => { const month = item.fecha_alta.slice(0, 7); acc[month] = (acc[month] ?? 0) + 1; return acc; }, {})).sort(([a], [b]) => a.localeCompare(b));
   const followups = rows.filter((item) => item.proximo_seguimiento).sort((a, b) => a.proximo_seguimiento.localeCompare(b.proximo_seguimiento));
 
@@ -53,7 +54,7 @@ export default function ReportsPage() {
     if (report === "padron") summary = [{ Indicador: "Total de padrinos", Valor: rows.length }, { Indicador: "Activos", Valor: statusCounts.activo }, { Indicador: "Pendientes", Valor: statusCounts.pendiente }, { Indicador: "Inactivos", Valor: statusCounts.inactivo }, ...byState.map(([label, value]) => ({ Indicador: `Ubicación: ${label}`, Valor: value }))];
     else if (report === "aportaciones") summary = [{ Indicador: "Compromiso mensual equivalente", Valor: recurring }, { Indicador: "Aportaciones únicas", Valor: unique }, { Indicador: "Total declarado", Valor: totalDeclared }, ...byFrequency.map((item) => ({ Indicador: `Periodicidad: ${item.label}`, Valor: item.value })), ...byMethod.map((item) => ({ Indicador: `Método: ${item.label}`, Valor: item.value }))];
     else summary = [{ Indicador: "Altas en el periodo", Valor: rows.length }, { Indicador: "Seguimientos programados", Valor: followups.length }, ...byMonth.map(([label, value]) => ({ Indicador: `Mes: ${label}`, Valor: value })), ...byOrigin.map(([label, value]) => ({ Indicador: `Origen: ${optionLabel("origen", label)}`, Valor: value }))];
-    exportReport(`reporte-${report}`, summary, rows);
+    exportReport(`reporte-${report}`, summary, report === "aportaciones" ? monetaryRows : rows);
   }
 
   return <><PageHeader eyebrow="Análisis" title="Reportes" description="Tres vistas operativas con filtros compartidos y exportación del resultado visible." actions={<button className="button button-primary" onClick={download} disabled={!rows.length}><Download />Exportar a Excel</button>} />
@@ -68,7 +69,7 @@ export default function ReportsPage() {
     </section>
     {!rows.length ? <div className="card"><EmptyState title="Sin resultados" description="No hay padrinos que coincidan con los filtros seleccionados." /></div> : <>
       {report === "padron" && <PadronReport rows={rows} counts={statusCounts} byState={byState} />}
-      {report === "aportaciones" && <ContributionsReport rows={rows} recurring={recurring} unique={unique} total={totalDeclared} byFrequency={byFrequency} byMethod={byMethod} />}
+      {report === "aportaciones" && <ContributionsReport rows={monetaryRows} recurring={recurring} unique={unique} total={totalDeclared} byFrequency={byFrequency} byMethod={byMethod} />}
       {report === "captacion" && <AcquisitionReport rows={rows} byMonth={byMonth} byOrigin={byOrigin} followups={followups} />}
     </>}
   </>;
@@ -87,5 +88,5 @@ function AcquisitionReport({ rows, byMonth, byOrigin, followups }: { rows: Padri
 }
 
 function DetailTable({ rows }: { rows: Padrino[] }) {
-  return <section className="card report-table"><div className="card-header"><h2>Detalle del reporte</h2><span className="record-count">{rows.length} registros</span></div><div className="table-wrap"><table><thead><tr><th>Padrino</th><th>Contacto</th><th>Ubicación</th><th>Aportación</th><th>Alta</th><th>Estado</th></tr></thead><tbody>{rows.slice(0, 50).map((item) => <tr key={item.id}><td>{padrinoName(item)}</td><td>{item.email}<br /><small>{item.telefono}</small></td><td>{item.municipio}, {item.estado}</td><td>{formatCurrency(item.aportacion)}<br /><small>{optionLabel("periodicidad", item.periodicidad)}</small></td><td>{formatDate(item.fecha_alta)}</td><td><StatusBadge status={item.estatus} /></td></tr>)}</tbody></table></div>{rows.length > 50 && <p className="preview-note">Se muestran 50 registros. El archivo Excel incluirá los {rows.length} resultados.</p>}</section>;
+  return <section className="card report-table"><div className="card-header"><h2>Detalle del reporte</h2><span className="record-count">{rows.length} registros</span></div><div className="table-wrap"><table><thead><tr><th>Padrino</th><th>Contacto</th><th>Ubicación</th><th>Aportación</th><th>Alta</th><th>Estado</th></tr></thead><tbody>{rows.slice(0, 50).map((item) => <tr key={item.id}><td>{padrinoName(item)}</td><td>{item.email}<br /><small>{item.telefono}</small></td><td>{item.municipio}, {item.estado}</td><td>{item.tipo_aportacion === "especie_navidad" ? <><strong>En especie</strong><br /><small>Regalos navideños</small></> : <>{formatCurrency(item.aportacion)}<br /><small>{optionLabel("periodicidad", item.periodicidad)}</small></>}</td><td>{formatDate(item.fecha_alta)}</td><td><StatusBadge status={item.estatus} /></td></tr>)}</tbody></table></div>{rows.length > 50 && <p className="preview-note">Se muestran 50 registros. El archivo Excel incluirá los {rows.length} resultados.</p>}</section>;
 }

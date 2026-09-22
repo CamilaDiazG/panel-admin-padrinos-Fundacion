@@ -1,6 +1,7 @@
 import type { Padrino } from "@/lib/padrinos";
 
 const base = {
+  tipo_aportacion: "monetaria" as const,
   pais: "México",
   telefono_alterno: "",
   colonia: "",

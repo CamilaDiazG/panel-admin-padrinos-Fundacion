@@ -10,8 +10,8 @@ interface CartasContextValue {
   cartas: CartaNavidad[];
   loading: boolean;
   error: string;
-  createCarta: (input: CartaInput, file: File) => Promise<CartaNavidad>;
-  updateEstado: (id: string, estado: CartaInput["estado"]) => Promise<void>;
+  createCarta: (input: CartaInput, file?: File | null) => Promise<CartaNavidad>;
+  updateSeguimiento: (id: string, changes: Pick<CartaInput, "confirmo_regalo" | "regalos_recibidos">) => Promise<void>;
 }
 
 const CartasContext = createContext<CartasContextValue | undefined>(undefined);
@@ -34,7 +34,11 @@ async function readCartas(): Promise<CartaNavidad[]> {
   return await new Promise((resolve, reject) => {
     const transaction = database.transaction(STORE_NAME, "readonly");
     const request = transaction.objectStore(STORE_NAME).getAll();
-    request.onsuccess = () => resolve(request.result as CartaNavidad[]);
+    request.onsuccess = () => resolve((request.result as Array<CartaNavidad & { estado?: string }>).map((item) => ({
+      ...item,
+      confirmo_regalo: item.confirmo_regalo ?? (item.estado === "confirmada" || item.estado === "regalo_recibido"),
+      regalos_recibidos: item.regalos_recibidos ?? (item.estado === "regalo_recibido"),
+    })));
     request.onerror = () => reject(request.error ?? new Error("No fue posible consultar las cartas"));
     transaction.oncomplete = () => database.close();
   });
@@ -64,18 +68,20 @@ export function CartasProvider({ children }: { children: ReactNode }) {
     return () => { cancelled = true; };
   }, []);
 
-  const createCarta = useCallback(async (raw: CartaInput, file: File) => {
+  const createCarta = useCallback(async (raw: CartaInput, file?: File | null) => {
     const input = cartaSchema.parse(raw);
-    const fileError = validateCartaFile(file);
-    if (fileError) throw new Error(fileError);
+    if (file) {
+      const fileError = validateCartaFile(file);
+      if (fileError) throw new Error(fileError);
+    }
     const now = new Date().toISOString();
     const carta: CartaNavidad = {
       ...input,
       id: crypto.randomUUID(),
-      archivo_nombre: file.name,
-      archivo_tipo: file.type || "application/octet-stream",
-      archivo_tamano: file.size,
-      archivo: file,
+      archivo_nombre: file?.name ?? "",
+      archivo_tipo: file?.type || "",
+      archivo_tamano: file?.size ?? 0,
+      archivo: file ?? undefined,
       created_at: now,
       updated_at: now,
     };
@@ -84,14 +90,12 @@ export function CartasProvider({ children }: { children: ReactNode }) {
     return carta;
   }, []);
 
-  const updateEstado = useCallback(async (id: string, estado: CartaInput["estado"]) => {
+  const updateSeguimiento = useCallback(async (id: string, changes: Pick<CartaInput, "confirmo_regalo" | "regalos_recibidos">) => {
     const current = cartas.find((item) => item.id === id);
-    if (!current) throw new Error("La carta no existe");
-    const today = new Date().toISOString().slice(0, 10);
+    if (!current) throw new Error("El ahijado no existe");
     const updated: CartaNavidad = {
       ...current,
-      estado,
-      fecha_envio: estado !== "pendiente" && !current.fecha_envio ? today : current.fecha_envio,
+      ...changes,
       updated_at: new Date().toISOString(),
     };
     cartaSchema.parse(updated);
@@ -99,7 +103,7 @@ export function CartasProvider({ children }: { children: ReactNode }) {
     setCartas((items) => items.map((item) => item.id === id ? updated : item));
   }, [cartas]);
 
-  const value = useMemo(() => ({ cartas, loading, error, createCarta, updateEstado }), [cartas, loading, error, createCarta, updateEstado]);
+  const value = useMemo(() => ({ cartas, loading, error, createCarta, updateSeguimiento }), [cartas, loading, error, createCarta, updateSeguimiento]);
   return <CartasContext.Provider value={value}>{children}</CartasContext.Provider>;
 }
 

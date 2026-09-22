@@ -21,6 +21,11 @@ describe("modelo de padrinos", () => {
     expect(monthlyEquivalent({ aportacion: 5000, periodicidad: "unica" })).toBe(0);
   });
 
+  it("normaliza los regalos navideños como donativo en especie único", () => {
+    const normalized = normalizePadrino({ ...padrinoDefaults, tipo_aportacion: "especie_navidad", aportacion: 800, periodicidad: "mensual", metodo_pago: "transferencia" });
+    expect(normalized).toMatchObject({ tipo_aportacion: "especie_navidad", aportacion: 0, periodicidad: "unica", metodo_pago: "otro" });
+  });
+
   it("detecta RFC o correo duplicado sin marcar el mismo registro", () => {
     const candidate = { ...padrinoDefaults, nombres: "Otra", apellido_paterno: "Persona", email: DEMO_PADRINOS[0].email.toUpperCase(), codigo_postal: "45019", telefono: "3312345678" };
     expect(isDuplicate(candidate, DEMO_PADRINOS)?.id).toBe(DEMO_PADRINOS[0].id);

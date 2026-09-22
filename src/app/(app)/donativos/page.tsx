@@ -30,7 +30,7 @@ export default function DonationsPage() {
   const yearDonations = donationsForYear(donations, year);
   const accumulated = accumulatedDonations(donations, year);
   const paidSponsorIds = new Set(yearDonations.map((item) => item.padrino_id));
-  const eligiblePadrinos = padrinos.filter((item) => (item.fecha_alta <= `${year}-12-31` && item.estatus !== "inactivo") || paidSponsorIds.has(item.id));
+  const eligiblePadrinos = padrinos.filter((item) => ((item.tipo_aportacion ?? "monetaria") === "monetaria" && item.fecha_alta <= `${year}-12-31` && item.estatus !== "inactivo") || paidSponsorIds.has(item.id));
   const expected = eligiblePadrinos.filter((item) => item.estatus !== "inactivo").reduce((sum, item) => sum + annualCommitment(item), 0);
   const pending = Math.max(expected - accumulated, 0);
   const monthly = monthlyDonations(donations, year);
@@ -92,7 +92,7 @@ export default function DonationsPage() {
     {showForm && <form className="card donation-form" onSubmit={handleSubmit(submit)} noValidate>
       <div className="card-header"><div><h2>Registrar movimiento</h2><p>El mes se determina automáticamente a partir de la fecha.</p></div><button type="button" className="button button-secondary button-small" onClick={() => setShowForm(false)}>Cerrar</button></div>
       <div className="form-grid card-body">
-        <div className="field field-span-2"><label className="required" htmlFor="donation-padrino">Padrino</label><select id="donation-padrino" {...register("padrino_id")}><option value="">Selecciona…</option>{padrinos.filter((item) => item.estatus !== "inactivo").map((item) => <option key={item.id} value={item.id}>{padrinoName(item)}</option>)}</select>{errors.padrino_id && <span className="field-error">{errors.padrino_id.message}</span>}</div>
+        <div className="field field-span-2"><label className="required" htmlFor="donation-padrino">Padrino</label><select id="donation-padrino" {...register("padrino_id")}><option value="">Selecciona…</option>{padrinos.filter((item) => item.estatus !== "inactivo" && (item.tipo_aportacion ?? "monetaria") === "monetaria").map((item) => <option key={item.id} value={item.id}>{padrinoName(item)}</option>)}</select>{errors.padrino_id && <span className="field-error">{errors.padrino_id.message}</span>}</div>
         <div className="field"><label className="required" htmlFor="donation-date">Fecha del donativo</label><input id="donation-date" type="date" {...register("fecha")} />{errors.fecha && <span className="field-error">{errors.fecha.message}</span>}</div>
         <div className="field"><label className="required" htmlFor="donation-amount">Monto (MXN)</label><input id="donation-amount" type="number" min="0.01" step="0.01" {...register("monto", { valueAsNumber: true })} />{errors.monto && <span className="field-error">{errors.monto.message}</span>}</div>
         <div className="field"><label className="required" htmlFor="donation-method">Método de aportación</label><select id="donation-method" {...register("metodo_pago", { onChange: (event) => { if (event.target.value !== "transferencia" && event.target.value !== "deposito") setValue("referencia", "", { shouldValidate: true }); } })}>{OPTIONS.metodo.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></div>

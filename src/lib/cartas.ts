@@ -10,14 +10,9 @@ export const cartaSchema = z.object({
   deseo_1: z.string().trim().min(1, "Escribe el primer regalo").max(250),
   deseo_2: z.string().trim().min(1, "Escribe el segundo regalo").max(250),
   deseo_3: z.string().trim().min(1, "Escribe el tercer regalo").max(250),
-  medio_envio: z.enum(["whatsapp", "correo", "impresa", "otro"]),
-  estado: z.enum(["pendiente", "enviada", "confirmada", "regalo_recibido"]),
-  fecha_envio: z.union([z.literal(""), z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Selecciona una fecha")]).default(""),
+  confirmo_regalo: z.boolean().default(false),
+  regalos_recibidos: z.boolean().default(false),
   observaciones: z.string().trim().max(1000).default(""),
-}).superRefine((data, ctx) => {
-  if (data.estado !== "pendiente" && !data.fecha_envio) {
-    ctx.addIssue({ code: "custom", path: ["fecha_envio"], message: "Indica cuándo se envió la carta" });
-  }
 });
 
 export type CartaInput = z.infer<typeof cartaSchema>;
@@ -27,7 +22,7 @@ export interface CartaNavidad extends CartaInput {
   archivo_nombre: string;
   archivo_tipo: string;
   archivo_tamano: number;
-  archivo: Blob;
+  archivo?: Blob;
   created_at: string;
   updated_at: string;
 }
@@ -39,32 +34,15 @@ export const cartaDefaults: CartaInput = {
   deseo_1: "",
   deseo_2: "",
   deseo_3: "",
-  medio_envio: "whatsapp",
-  estado: "pendiente",
-  fecha_envio: "",
+  confirmo_regalo: false,
+  regalos_recibidos: false,
   observaciones: "",
 };
 
-export const CARTA_ESTADOS = [
-  { value: "pendiente", label: "Pendiente de envío" },
-  { value: "enviada", label: "Enviada" },
-  { value: "confirmada", label: "Recepción confirmada" },
-  { value: "regalo_recibido", label: "Regalo recibido" },
-] as const;
-
-export const CARTA_MEDIOS = [
-  { value: "whatsapp", label: "WhatsApp" },
-  { value: "correo", label: "Correo electrónico" },
-  { value: "impresa", label: "Carta impresa" },
-  { value: "otro", label: "Otro" },
-] as const;
-
-export function cartaEstadoLabel(value: CartaInput["estado"]): string {
-  return CARTA_ESTADOS.find((item) => item.value === value)?.label ?? value;
-}
-
-export function cartaMedioLabel(value: CartaInput["medio_envio"]): string {
-  return CARTA_MEDIOS.find((item) => item.value === value)?.label ?? value;
+export function cartaStatus(carta: Pick<CartaInput, "confirmo_regalo" | "regalos_recibidos">) {
+  if (carta.regalos_recibidos) return { label: "Regalos recibidos", className: "status-active", symbol: "●" };
+  if (carta.confirmo_regalo) return { label: "Confirmó que regalará", className: "status-active", symbol: "●" };
+  return { label: "Pendiente de confirmar", className: "status-pending", symbol: "◆" };
 }
 
 export function validateCartaFile(file: Pick<File, "name" | "size" | "type">): string | null {

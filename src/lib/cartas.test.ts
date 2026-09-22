@@ -8,9 +8,8 @@ const valid = {
   deseo_1: "Libro",
   deseo_2: "Rompecabezas",
   deseo_3: "Balón",
-  medio_envio: "whatsapp" as const,
-  estado: "pendiente" as const,
-  fecha_envio: "",
+  confirmo_regalo: false,
+  regalos_recibidos: false,
   observaciones: "",
 };
 
@@ -20,9 +19,9 @@ describe("cartas navideñas", () => {
     expect(cartaSchema.safeParse({ ...valid, deseo_3: "" }).success).toBe(false);
   });
 
-  it("exige fecha cuando la carta ya fue enviada", () => {
-    expect(cartaSchema.safeParse({ ...valid, estado: "enviada" }).success).toBe(false);
-    expect(cartaSchema.safeParse({ ...valid, estado: "enviada", fecha_envio: "2026-11-20" }).success).toBe(true);
+  it("permite controlar confirmación y recepción por separado", () => {
+    expect(cartaSchema.safeParse({ ...valid, regalos_recibidos: true }).success).toBe(true);
+    expect(cartaSchema.safeParse({ ...valid, confirmo_regalo: true, regalos_recibidos: true }).success).toBe(true);
   });
 
   it("acepta únicamente escaneos compatibles de hasta 10 MB", () => {

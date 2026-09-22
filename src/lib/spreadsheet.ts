@@ -14,7 +14,7 @@ export const IMPORT_COLUMNS: { key: keyof PadrinoInput; label: string }[] = [
   { key: "codigo_postal", label: "Código postal" }, { key: "colonia", label: "Colonia" },
   { key: "calle", label: "Calle" }, { key: "numero_exterior", label: "Número exterior" },
   { key: "numero_interior", label: "Número interior" }, { key: "fecha_alta", label: "Fecha de alta" },
-  { key: "aportacion", label: "Aportación" }, { key: "periodicidad", label: "Periodicidad" },
+  { key: "tipo_aportacion", label: "Tipo de aportación" }, { key: "aportacion", label: "Aportación" }, { key: "periodicidad", label: "Periodicidad" },
   { key: "metodo_pago", label: "Método de pago" }, { key: "origen", label: "Origen" },
   { key: "proximo_seguimiento", label: "Próximo seguimiento" }, { key: "observaciones", label: "Observaciones" },
   { key: "estatus", label: "Estado del padrino" },
@@ -70,6 +70,7 @@ export function parseSpreadsheet(buffer: ArrayBuffer): { rows: PadrinoInput[]; h
     mapped.tipo = normalizedOption("tipo", mapped.tipo);
     mapped.estatus = normalizedOption("estatus", mapped.estatus);
     mapped.canal_preferido = normalizedOption("canal", mapped.canal_preferido);
+    mapped.tipo_aportacion = normalizedOption("tipo_aportacion", mapped.tipo_aportacion);
     mapped.periodicidad = normalizedOption("periodicidad", mapped.periodicidad);
     mapped.metodo_pago = normalizedOption("metodo", mapped.metodo_pago);
     mapped.origen = normalizedOption("origen", mapped.origen);
@@ -91,7 +92,7 @@ export function downloadTemplate() {
     const values: Partial<Record<keyof PadrinoInput, string | number>> = {
       tipo: "Persona física", nombres: "Ejemplo", apellido_paterno: "Demostración", email: "ejemplo@correo.com",
       telefono: "3312345678", canal_preferido: "WhatsApp", pais: "México", estado: "Jalisco", municipio: "Zapopan",
-      codigo_postal: "45019", fecha_alta: "2026-09-01", aportacion: 500, periodicidad: "Mensual",
+      codigo_postal: "45019", fecha_alta: "2026-09-01", tipo_aportacion: "Donativo monetario", aportacion: 500, periodicidad: "Mensual",
       metodo_pago: "Transferencia", origen: "Recomendación", estatus: "Activo",
     };
     sample[label] = values[key] ?? "";
@@ -114,7 +115,7 @@ function detailRows(rows: Padrino[]) {
   return rows.map((item) => ({
     Padrino: csvSafe(padrinoName(item)), Tipo: optionLabel("tipo", item.tipo), RFC: csvSafe(item.rfc),
     Correo: csvSafe(item.email), Teléfono: csvSafe(item.telefono), Estado: item.estado, Municipio: item.municipio,
-    "Fecha de alta": formatDate(item.fecha_alta), Aportación: item.aportacion, Periodicidad: optionLabel("periodicidad", item.periodicidad),
+    "Fecha de alta": formatDate(item.fecha_alta), "Tipo de aportación": optionLabel("tipo_aportacion", item.tipo_aportacion ?? "monetaria"), Aportación: item.aportacion, Periodicidad: optionLabel("periodicidad", item.periodicidad),
     "Método de pago": optionLabel("metodo", item.metodo_pago), Origen: optionLabel("origen", item.origen),
     "Próximo seguimiento": formatDate(item.proximo_seguimiento), Estatus: optionLabel("estatus", item.estatus),
   }));
@@ -125,7 +126,7 @@ export function exportReport(filename: string, summary: Record<string, unknown>[
   const summarySheet = XLSX.utils.json_to_sheet(summary.map((row) => Object.fromEntries(Object.entries(row).map(([key, value]) => [key, csvSafe(value)]))));
   const detailSheet = XLSX.utils.json_to_sheet(detailRows(rows));
   summarySheet["!cols"] = [{ wch: 28 }, { wch: 22 }, { wch: 22 }];
-  detailSheet["!cols"] = Array.from({ length: 14 }, () => ({ wch: 20 }));
+  detailSheet["!cols"] = Array.from({ length: 15 }, () => ({ wch: 20 }));
   XLSX.utils.book_append_sheet(workbook, summarySheet, "Resumen");
   XLSX.utils.book_append_sheet(workbook, detailSheet, "Detalle");
   XLSX.writeFile(workbook, `${filename}-${new Date().toISOString().slice(0, 10)}.xlsx`);
