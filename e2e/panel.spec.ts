@@ -4,7 +4,7 @@ test("permite entrar al modo demostración y consultar los tres reportes", async
   await page.goto("/login");
   await expect(page.getByAltText("Fundación Juntos por los Demás")).toBeVisible();
   await page.getByRole("button", { name: "Entrar a la demostración" }).click();
-  await expect(page.getByRole("heading", { name: "Resumen del padrón" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Resumen General" })).toBeVisible();
   if (await page.getByRole("button", { name: "Abrir menú" }).isVisible()) {
     await page.getByRole("button", { name: "Abrir menú" }).click();
   }
@@ -114,7 +114,7 @@ test("hidrata sin errores cuando existen datos locales distintos", async ({ page
     if (message.type() === "error" && message.text().includes("Hydration failed")) hydrationErrors.push(message.text());
   });
   await page.reload();
-  await expect(page.getByRole("heading", { name: "Resumen del padrón" })).toBeVisible();
-  await expect(page.getByText("0 activos")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Resumen General" })).toBeVisible();
+  await expect(page.getByText("De 0 padrinos registrados")).toBeVisible();
   expect(hydrationErrors).toEqual([]);
 });

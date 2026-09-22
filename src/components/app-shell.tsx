@@ -54,7 +54,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           <button className="nav-button" onClick={logout}><LogOut aria-hidden="true" />Cerrar sesión</button>
         </div>
       </aside>
-      <main className="main-content">{children}</main>
+      <div className="app-workspace">
+        <header className="app-topbar">
+          <Link className="topbar-brand" href="/"><Image src="/logo-fundacion.png" alt="Fundación Juntos por los Demás" width={34} height={26} priority /><span>Fundación Juntos por los Demás</span></Link>
+          <span className="admin-chip"><i />Auxiliar Admin</span>
+        </header>
+        <main className="main-content">{children}</main>
+      </div>
     </div>
   );
 }
