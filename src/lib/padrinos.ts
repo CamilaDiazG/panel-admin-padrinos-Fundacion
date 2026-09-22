@@ -1,8 +1,6 @@
 import { z } from "zod";
 
 const optionalText = z.string().trim().max(500).default("");
-const requiredText = (label: string, max = 120) =>
-  z.string().trim().min(1, `${label} es obligatorio`).max(max);
 
 export const padrinoSchema = z
   .object({
@@ -13,14 +11,14 @@ export const padrinoSchema = z
     razon_social: optionalText,
     rfc: z.string().trim().max(13).default(""),
     contacto_responsable: optionalText,
-    email: z.string().trim().email("Escribe un correo válido").max(160),
-    telefono: requiredText("El teléfono", 20),
+    email: z.string().trim().max(160).refine((value) => !value || z.string().email().safeParse(value).success, "Escribe un correo válido"),
+    telefono: z.string().trim().max(20).default(""),
     telefono_alterno: z.string().trim().max(20).default(""),
     canal_preferido: z.enum(["whatsapp", "llamada", "correo"]),
-    pais: requiredText("El país", 80).default("México"),
-    estado: requiredText("El estado", 80),
-    municipio: requiredText("El municipio", 100),
-    codigo_postal: z.string().trim().regex(/^\d{5}$/, "El código postal debe tener 5 dígitos"),
+    pais: z.string().trim().max(80).default("México"),
+    estado: z.string().trim().max(80).default(""),
+    municipio: z.string().trim().max(100).default(""),
+    codigo_postal: z.union([z.literal(""), z.string().trim().regex(/^\d{5}$/, "El código postal debe tener 5 dígitos")]).default(""),
     colonia: optionalText,
     calle: optionalText,
     numero_exterior: z.string().trim().max(20).default(""),
@@ -39,11 +37,22 @@ export const padrinoSchema = z
     if (data.tipo === "persona" && !data.nombres) {
       ctx.addIssue({ code: "custom", path: ["nombres"], message: "El nombre es obligatorio" });
     }
-    if (data.tipo === "persona" && !data.apellido_paterno) {
+    if (data.tipo === "persona" && data.tipo_aportacion === "monetaria" && !data.apellido_paterno) {
       ctx.addIssue({ code: "custom", path: ["apellido_paterno"], message: "El apellido paterno es obligatorio" });
     }
     if (data.tipo === "empresa" && !data.razon_social) {
       ctx.addIssue({ code: "custom", path: ["razon_social"], message: "La razón social es obligatoria" });
+    }
+    if (!data.email && !data.telefono) {
+      ctx.addIssue({ code: "custom", path: ["telefono"], message: "Escribe al menos un teléfono o correo" });
+    }
+    if (data.tipo_aportacion === "monetaria") {
+      if (!data.email) ctx.addIssue({ code: "custom", path: ["email"], message: "El correo es obligatorio" });
+      if (!data.telefono) ctx.addIssue({ code: "custom", path: ["telefono"], message: "El teléfono es obligatorio" });
+      if (!data.pais) ctx.addIssue({ code: "custom", path: ["pais"], message: "El país es obligatorio" });
+      if (!data.estado) ctx.addIssue({ code: "custom", path: ["estado"], message: "El estado es obligatorio" });
+      if (!data.municipio) ctx.addIssue({ code: "custom", path: ["municipio"], message: "El municipio es obligatorio" });
+      if (!data.codigo_postal) ctx.addIssue({ code: "custom", path: ["codigo_postal"], message: "El código postal es obligatorio" });
     }
   });
 
@@ -154,6 +163,6 @@ export function isDuplicate(candidate: PadrinoInput, existing: Padrino[], ignore
   const rfc = normalizeRfc(candidate.rfc);
   return existing.find((item) =>
     item.id !== ignoreId &&
-    ((rfc && normalizeRfc(item.rfc) === rfc) || normalizeEmail(item.email) === email),
+    ((rfc && normalizeRfc(item.rfc) === rfc) || (email && normalizeEmail(item.email) === email)),
   );
 }

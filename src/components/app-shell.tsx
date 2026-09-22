@@ -4,13 +4,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
-import { BarChart3, HandCoins, Home, LogOut, Menu, RotateCcw, Upload, Users, X } from "lucide-react";
+import { BarChart3, Gift, HandCoins, Home, LogOut, Menu, RotateCcw, Upload, Users, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { usePadrinos } from "@/components/padrinos-provider";
 
 const links = [
   { href: "/", label: "Resumen", icon: Home },
   { href: "/padrinos", label: "Padrinos", icon: Users },
+  { href: "/posada", label: "Campaña de Posada", icon: Gift },
   { href: "/donativos", label: "Donativos", icon: HandCoins },
   { href: "/reportes", label: "Reportes", icon: BarChart3 },
   { href: "/importar", label: "Importar", icon: Upload },

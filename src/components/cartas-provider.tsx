@@ -99,8 +99,13 @@ export function CartasProvider({ children }: { children: ReactNode }) {
       updated_at: new Date().toISOString(),
     };
     cartaSchema.parse(updated);
-    await persistCarta(updated);
     setCartas((items) => items.map((item) => item.id === id ? updated : item));
+    try {
+      await persistCarta(updated);
+    } catch (reason) {
+      setCartas((items) => items.map((item) => item.id === id ? current : item));
+      throw reason;
+    }
   }, [cartas]);
 
   const value = useMemo(() => ({ cartas, loading, error, createCarta, updateSeguimiento }), [cartas, loading, error, createCarta, updateSeguimiento]);

@@ -26,9 +26,15 @@ describe("modelo de padrinos", () => {
     expect(normalized).toMatchObject({ tipo_aportacion: "especie_navidad", aportacion: 0, periodicidad: "unica", metodo_pago: "otro" });
   });
 
+  it("permite un alta rápida de posada con un solo medio de contacto", () => {
+    const result = padrinoSchema.safeParse({ ...padrinoDefaults, tipo_aportacion: "especie_navidad", nombres: "Empleado participante", apellido_paterno: "", email: "", telefono: "3312345678", estado: "", municipio: "", codigo_postal: "" });
+    expect(result.success).toBe(true);
+  });
+
   it("detecta RFC o correo duplicado sin marcar el mismo registro", () => {
     const candidate = { ...padrinoDefaults, nombres: "Otra", apellido_paterno: "Persona", email: DEMO_PADRINOS[0].email.toUpperCase(), codigo_postal: "45019", telefono: "3312345678" };
     expect(isDuplicate(candidate, DEMO_PADRINOS)?.id).toBe(DEMO_PADRINOS[0].id);
     expect(isDuplicate(candidate, DEMO_PADRINOS, DEMO_PADRINOS[0].id)).toBeUndefined();
+    expect(isDuplicate({ ...padrinoDefaults, tipo_aportacion: "especie_navidad", nombres: "Sin correo", telefono: "3311111111", email: "" }, [{ ...DEMO_PADRINOS[0], id: "sin-correo", email: "" }])).toBeUndefined();
   });
 });

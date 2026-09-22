@@ -171,8 +171,9 @@ La función fuente es `monthlyEquivalent` en `src/lib/padrinos.ts`. Una aportaci
 | `/restablecer` | Definición de contraseña nueva. |
 | `/` | Indicadores y seguimientos próximos. |
 | `/padrinos` | Consulta, filtros, paginación y cambio de estado. |
-| `/padrinos/nuevo` | Alta de padrino. |
-| `/padrinos/[id]` | Consulta y edición. |
+| `/padrinos/nuevo` | Alta adaptativa: padrino monetario o padrino de posada. |
+| `/padrinos/[id]` | Resumen, datos y ahijados organizados por pestañas. |
+| `/posada` | Tablero anual, alta rápida, asignación y seguimiento de regalos. |
 | `/donativos` | Captura de movimientos, filtro anual y control mensual. |
 | `/importar` | Plantilla, previsualización y carga masiva. |
 | `/reportes` | Reportes filtrables y exportación. |
